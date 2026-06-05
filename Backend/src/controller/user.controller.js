@@ -1,9 +1,10 @@
 import { User } from "../model/user.model.js";
+import jwt from "jsonwebtoken";
 
 //! Utils Imports
-import { asyncHandler } from "../utils/asyncHandler.js"
-import { ApiError } from "../utils/ApiError.js"
-import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -37,8 +38,10 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req , res) => {
-    const { name , email , password } = req.body;
-    if(!name || !email || !password){
+    const { name, userName, email, password } = req.body;
+    const displayName = name || userName;
+
+    if(!displayName || !email || !password){
         throw new ApiError(400 , "Fill all the fields...");
     }
 
@@ -48,12 +51,12 @@ const registerUser = asyncHandler(async (req , res) => {
     }
 
     const user = await User.create({
-        name,
+        name: displayName,
         email,
         password
     });
 
-    const { accessToken , refreshToken } = generateAccessAndRefreshToken(user._id);
+    const { accessToken , refreshToken } = await generateAccessAndRefreshToken(user._id);
 
     const createdUser = await User.findById(user._id).select(" -password -refreshToken ");
     if(!createdUser){
@@ -82,10 +85,10 @@ const loginUser = asyncHandler(async (req , res) => {
         throw new ApiError(400 , "Incorrect Password...");
     }
 
-    const { accessToken , refreshToken } = generateAccessAndRefreshToken(user._id)
+    const { accessToken , refreshToken } = await generateAccessAndRefreshToken(user._id)
 
     const loggedInUser = await User.findById(user._id).select(" -password -refreshToken ")
-    if(!logedInUser){
+    if(!loggedInUser){
         throw new ApiError(400 , "Login Failed...");
     }    
 
@@ -139,8 +142,8 @@ const refreshAccessToken = asyncHandler(async (req , res) => {
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newRefreshToken, options)
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", newRefreshToken, cookieOptions)
       .json(
         new ApiResponse(
           200,
@@ -162,4 +165,4 @@ const refreshAccessToken = asyncHandler(async (req , res) => {
     }
 });
 
-export { registerUser, loginUser , logoutUser , currentUser , refreshAccessToken, updateProfile };
+export { registerUser, loginUser , logoutUser , currentUser , refreshAccessToken };

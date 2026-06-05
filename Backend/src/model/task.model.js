@@ -1,12 +1,15 @@
 import { Schema , model } from 'mongoose';
 
 const taskSchema = new Schema({
-    tile : {
+    title : {
         type : String,
         required : true,
+        trim : true
     },
     description : {
         type : String,
+        trim : true,
+        default : ""
     },
     status : {
         type : String,
@@ -15,7 +18,9 @@ const taskSchema = new Schema({
     },
     userId : {
         type : Schema.Types.ObjectId,
-        ref : "User"
+        ref : "User",
+        required : true,
+        index : true
     }
 } , { timestamps : true})
 

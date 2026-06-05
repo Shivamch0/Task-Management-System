@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 
 import express, { urlencoded } from "express";
 import cors from "cors";
@@ -5,7 +7,7 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
-app.set("trust proxy" , 1)
+app.set("trust proxy", 1);
 app.use(
   cors({
     origin: process.env.CORS || "http://localhost:5173",

@@ -87,13 +87,10 @@ export function AppProvider({ children }) {
   };
 
   const deleteTask = async (taskId) => {
-    let originalTasks = null;
+    const originalTasks = [...tasks];
 
     // Optimistically update tasks state
-    setTasks((prev) => {
-      originalTasks = [...prev];
-      return prev.filter((task) => task.id !== taskId);
-    });
+    setTasks((prev) => prev.filter((task) => task.id !== taskId));
 
     try {
       await api.delete(`/tasks/${taskId}`);
@@ -101,29 +98,26 @@ export function AppProvider({ children }) {
     } catch (error) {
       console.error("Failed to delete task:", error);
       // Revert to original tasks state on error
-      if (originalTasks) {
-        setTasks(originalTasks);
-      }
+      setTasks(originalTasks);
       return false;
     }
   };
 
   const updateTaskStatus = async (taskId, status) => {
-    let originalTask = null;
+    const originalTask = tasks.find((task) => task.id === taskId);
+    if (!originalTask) return null;
 
     // Optimistically update tasks state
     setTasks((prev) =>
-      prev.map((task) => {
-        if (task.id === taskId) {
-          originalTask = { ...task };
-          return {
-            ...task,
-            status,
-            completed: status === "completed",
-          };
-        }
-        return task;
-      }),
+      prev.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              status,
+              completed: status === "completed",
+            }
+          : task,
+      ),
     );
 
     try {
@@ -138,21 +132,17 @@ export function AppProvider({ children }) {
         return updatedTask;
       } else {
         // Revert on invalid response
-        if (originalTask) {
-          setTasks((prev) =>
-            prev.map((task) => (task.id === taskId ? originalTask : task)),
-          );
-        }
+        setTasks((prev) =>
+          prev.map((task) => (task.id === taskId ? originalTask : task)),
+        );
         return null;
       }
     } catch (error) {
       console.error("Failed to update task status:", error);
       // Revert on error
-      if (originalTask) {
-        setTasks((prev) =>
-          prev.map((task) => (task.id === taskId ? originalTask : task)),
-        );
-      }
+      setTasks((prev) =>
+        prev.map((task) => (task.id === taskId ? originalTask : task)),
+      );
       return null;
     }
   };

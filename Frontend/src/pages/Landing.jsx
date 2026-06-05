@@ -113,7 +113,7 @@ export default function Landing() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight font-display leading-[1.1] max-w-3xl mx-auto">
-            Streamline your project{" "}
+            Streamline your tasks{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-400 dark:to-indigo-300">
               workspaces
             </span>{" "}
@@ -293,93 +293,6 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="assignment" className="py-20 px-6 max-w-5xl mx-auto space-y-12 animate-fade-in">
-        <div className="text-center space-y-2">
-          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight font-display">
-            Internship Assignment Objectives
-          </h2>
-          <p className="text-sm text-slate-450 dark:text-slate-500 font-semibold max-w-lg mx-auto">
-            Review the technical checklist implemented for the MERN Stack Task Management Evaluation.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Column 1: Core Specs */}
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium space-y-6">
-            <h3 className="text-lg font-bold text-slate-850 dark:text-slate-100 font-display border-b border-slate-50 dark:border-slate-850 pb-2">
-              📋 Core Deliverables
-            </h3>
-            <ul className="text-xs text-slate-505 dark:text-slate-400 space-y-3.5">
-              <li className="flex items-start gap-2.5">
-                <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-700 dark:text-slate-305">User Registration & Login</span>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Secure sign-up and login endpoints using HTTP-Only cookies to store access and refresh JWTs safely.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-700 dark:text-slate-305">Smooth CRUD Operations</span>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Fully functional Add, Edit, Delete, and Toggle status controls for all tasks in real-time.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-700 dark:text-slate-305">Protected Routes Middleware</span>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">All task API routes are protected behind a custom Node/Express authentication middleware layer.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-700 dark:text-slate-305">Yup & Formik Form Validation</span>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Strict schemas used on registration, login, and change-password forms to ensure input sanitization.</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 2: Bonus & Evaluation */}
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium space-y-6">
-            <h3 className="text-lg font-bold text-slate-850 dark:text-slate-100 font-display border-b border-slate-50 dark:border-slate-850 pb-2">
-              ⭐ Added Value & Bonus Features
-            </h3>
-            <ul className="text-xs text-slate-505 dark:text-slate-400 space-y-3.5">
-              <li className="flex items-start gap-2.5">
-                <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-700 dark:text-slate-305">Instant Search & Filter</span>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Fast client-side query search covering titles and details, plus filter tabs for completed status.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-700 dark:text-slate-305">Task Pagination</span>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Interactive pages (5 items per page) with a reactive boundary self-correction hook to prevent screen lockups.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-700 dark:text-slate-305">Responsive Fluid Layout</span>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Premium design optimized across mobile viewports, tablets, and dark/light modes.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-700 dark:text-slate-305">Axios Automatic Token Rotations</span>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Gracefully handles token expiry and updates the user's session without interrupting user experience.</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
       <section id="faq" className="py-20 px-6 max-w-3xl mx-auto space-y-12">
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight font-display">
@@ -424,7 +337,7 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <img src={logoImg} alt="ZenTask Logo" className="h-5 w-auto object-contain rounded" />
             <span>
-              ZenTask &copy; {new Date().getFullYear()} Shivam Choudhary. All
+              ZenTask &copy; {new Date().getFullYear()} Shivam. All
               rights reserved.
             </span>
           </div>

@@ -10,6 +10,7 @@ import {
   Layers,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import logoImg from "../assets/ZenTask.png";
 
 export function Sidebar({ isOpen, onClose }) {
   const { currentUser, logout } = useAuth();
@@ -47,9 +48,7 @@ export function Sidebar({ isOpen, onClose }) {
               className="flex items-center gap-2.5"
               onClick={onClose}
             >
-              <div className="p-2 bg-indigo-600 rounded-lg text-white">
-                <Layers className="w-5 h-5" />
-              </div>
+              <img src={logoImg} alt="ZenTask Logo" className="h-8 w-auto object-contain rounded-lg" />
               <span className="font-display font-bold text-xl tracking-tight text-slate-800 dark:text-slate-100">
                 ZenTask
               </span>

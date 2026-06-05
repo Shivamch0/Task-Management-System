@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import logoImg from "../assets/ZenTask.png";
 import {
   Layers,
   ArrowRight,
@@ -49,9 +50,7 @@ export default function Landing() {
       <header className="sticky top-0 z-50 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 py-4 flex items-center justify-between transition-colors">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-600 rounded-lg text-white">
-              <Layers className="w-5 h-5" />
-            </div>
+            <img src={logoImg} alt="ZenTask Logo" className="h-8 w-auto object-contain rounded-lg" />
             <span className="font-display font-bold text-xl tracking-tight text-slate-800 dark:text-slate-100">
               ZenTask
             </span>
@@ -65,10 +64,10 @@ export default function Landing() {
               Features
             </a>
             <a
-              href="#pricing"
+              href="#assignment"
               className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
-              Pricing
+              Specifications
             </a>
             <a
               href="#faq"
@@ -294,109 +293,89 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="pricing" className="py-20 px-6 max-w-5xl mx-auto space-y-12">
+      <section id="assignment" className="py-20 px-6 max-w-5xl mx-auto space-y-12 animate-fade-in">
         <div className="text-center space-y-2">
-          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 font-display tracking-tight">
-            Simple, honest pricing
+          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight font-display">
+            Internship Assignment Objectives
           </h2>
-          <p className="text-sm text-slate-405 dark:text-slate-500 font-semibold max-w-sm mx-auto">
-            Get started for free or upgrade as your team operations expand.
+          <p className="text-sm text-slate-450 dark:text-slate-500 font-semibold max-w-lg mx-auto">
+            Review the technical checklist implemented for the MERN Stack Task Management Evaluation.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-205 dark:border-slate-800 shadow-premium space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Free Sandbox
-              </p>
-              <h3 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 font-display">
-                $0{" "}
-                <span className="text-sm text-slate-400 dark:text-slate-500 font-normal">
-                  / lifetime
-                </span>
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Perfect for single developers, students, and local organizers.
-              </p>
-
-              <ul className="text-xs text-slate-505 dark:text-slate-400 space-y-2.5 pt-4">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />{" "}
-                  Unlimited Projects
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />{" "}
-                  Unlimited Tasks & Subtasks
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />{" "}
-                  MongoDB-backed Workspace
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> SVG
-                  Productivity Analytics
-                </li>
-              </ul>
-            </div>
-
-            <Link
-              to="/register"
-              className="block w-full py-2.5 text-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-750 dark:text-slate-200 font-bold rounded-lg text-xs transition-colors"
-            >
-              Get Started Free
-            </Link>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Column 1: Core Specs */}
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium space-y-6">
+            <h3 className="text-lg font-bold text-slate-850 dark:text-slate-100 font-display border-b border-slate-50 dark:border-slate-850 pb-2">
+              📋 Core Deliverables
+            </h3>
+            <ul className="text-xs text-slate-505 dark:text-slate-400 space-y-3.5">
+              <li className="flex items-start gap-2.5">
+                <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-700 dark:text-slate-305">User Registration & Login</span>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Secure sign-up and login endpoints using HTTP-Only cookies to store access and refresh JWTs safely.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-700 dark:text-slate-305">Smooth CRUD Operations</span>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Fully functional Add, Edit, Delete, and Toggle status controls for all tasks in real-time.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-700 dark:text-slate-305">Protected Routes Middleware</span>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">All task API routes are protected behind a custom Node/Express authentication middleware layer.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-700 dark:text-slate-305">Yup & Formik Form Validation</span>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Strict schemas used on registration, login, and change-password forms to ensure input sanitization.</p>
+                </div>
+              </li>
+            </ul>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-xl border-2 border-indigo-650 dark:border-indigo-500 shadow-premium space-y-6 flex flex-col justify-between relative">
-            <div className="absolute top-0 right-6 -translate-y-1/2 bg-indigo-600 dark:bg-indigo-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Popular
-            </div>
-
-            <div className="space-y-4">
-              <p className="text-xs font-bold text-indigo-650 dark:text-indigo-400 uppercase tracking-wider">
-                Team Server
-              </p>
-              <h3 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 font-display">
-                $8{" "}
-                <span className="text-sm text-slate-400 dark:text-slate-500 font-normal">
-                  / user / mo
-                </span>
-              </h3>
-              <p className="text-sm text-slate-505 dark:text-slate-400">
-                Best for collaborative teams, startups, and agile syncs.
-              </p>
-
-              <ul className="text-xs text-slate-505 dark:text-slate-400 space-y-2.5 pt-4">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-indigo-500" />{" "}
-                  Everything in Free
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-indigo-500" /> Team
-                  Cloud Synchronization
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-indigo-500" />{" "}
-                  Role-based Member Permissions
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-indigo-500" /> Slack
-                  & GitHub API Integrations
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-indigo-500" />{" "}
-                  Priority Support SLA
-                </li>
-              </ul>
-            </div>
-
-            <Link
-              to="/register"
-              className="block w-full py-2.5 text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm"
-            >
-              Sign Up For Trial
-            </Link>
+          {/* Column 2: Bonus & Evaluation */}
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium space-y-6">
+            <h3 className="text-lg font-bold text-slate-850 dark:text-slate-100 font-display border-b border-slate-50 dark:border-slate-850 pb-2">
+              ⭐ Added Value & Bonus Features
+            </h3>
+            <ul className="text-xs text-slate-505 dark:text-slate-400 space-y-3.5">
+              <li className="flex items-start gap-2.5">
+                <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-700 dark:text-slate-305">Instant Search & Filter</span>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Fast client-side query search covering titles and details, plus filter tabs for completed status.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-700 dark:text-slate-305">Task Pagination</span>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Interactive pages (5 items per page) with a reactive boundary self-correction hook to prevent screen lockups.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-700 dark:text-slate-305">Responsive Fluid Layout</span>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Premium design optimized across mobile viewports, tablets, and dark/light modes.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-700 dark:text-slate-305">Axios Automatic Token Rotations</span>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">Gracefully handles token expiry and updates the user's session without interrupting user experience.</p>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
@@ -443,7 +422,7 @@ export default function Landing() {
       <footer className="bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 py-8 px-6 text-center text-xs text-slate-400 dark:text-slate-505 font-semibold transition-colors">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Layers className="w-4.5 h-4.5 text-indigo-500" />
+            <img src={logoImg} alt="ZenTask Logo" className="h-5 w-auto object-contain rounded" />
             <span>
               ZenTask &copy; {new Date().getFullYear()} Shivam Choudhary. All
               rights reserved.
@@ -454,13 +433,13 @@ export default function Landing() {
               href="#features"
               className="hover:text-slate-600 dark:hover:text-slate-400"
             >
-              Privacy Policy
+              Features
             </a>
             <a
-              href="#pricing"
+              href="#assignment"
               className="hover:text-slate-600 dark:hover:text-slate-400"
             >
-              Terms of Use
+              Specifications
             </a>
           </div>
         </div>

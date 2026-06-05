@@ -87,32 +87,74 @@ export function AppProvider({ children }) {
   };
 
   const deleteTask = async (taskId) => {
+    let originalTasks = null;
+
+    // Optimistically update tasks state
+    setTasks((prev) => {
+      originalTasks = [...prev];
+      return prev.filter((task) => task.id !== taskId);
+    });
+
     try {
       await api.delete(`/tasks/${taskId}`);
-      setTasks((prev) => prev.filter((task) => task.id !== taskId));
       return true;
     } catch (error) {
       console.error("Failed to delete task:", error);
+      // Revert to original tasks state on error
+      if (originalTasks) {
+        setTasks(originalTasks);
+      }
       return false;
     }
   };
 
   const updateTaskStatus = async (taskId, status) => {
+    let originalTask = null;
+
+    // Optimistically update tasks state
+    setTasks((prev) =>
+      prev.map((task) => {
+        if (task.id === taskId) {
+          originalTask = { ...task };
+          return {
+            ...task,
+            status,
+            completed: status === "completed",
+          };
+        }
+        return task;
+      }),
+    );
+
     try {
       const response = await api.patch(`/tasks/${taskId}/status`, { status });
       const updatedTask = mapTask(response.data?.data?.task);
 
       if (updatedTask) {
+        // Sync with server state
         setTasks((prev) =>
           prev.map((task) => (task.id === taskId ? updatedTask : task)),
         );
         return updatedTask;
+      } else {
+        // Revert on invalid response
+        if (originalTask) {
+          setTasks((prev) =>
+            prev.map((task) => (task.id === taskId ? originalTask : task)),
+          );
+        }
+        return null;
       }
     } catch (error) {
       console.error("Failed to update task status:", error);
+      // Revert on error
+      if (originalTask) {
+        setTasks((prev) =>
+          prev.map((task) => (task.id === taskId ? originalTask : task)),
+        );
+      }
+      return null;
     }
-
-    return null;
   };
 
   const toggleTaskStatus = async (taskId) => {

@@ -50,11 +50,18 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const checkSession = async () => {
+      const isLoggedIn = window.localStorage.getItem("zentask_logged_in") === "true";
+      if (!isLoggedIn) {
+        setIsAuthenticating(false);
+        return;
+      }
+
       try {
         const response = await api.get("/user/current-user");
         setCurrentUser(mapUser(response.data?.data?.user));
       } catch (error) {
-        console.error("Session check failed:", error);
+        console.warn("Session check failed:", error.message || error);
+        window.localStorage.removeItem("zentask_logged_in");
         setCurrentUser(null);
       } finally {
         setIsAuthenticating(false);
@@ -70,6 +77,7 @@ export function AuthProvider({ children }) {
       const user = mapUser(response.data?.data?.user);
 
       if (user) {
+        window.localStorage.setItem("zentask_logged_in", "true");
         setCurrentUser(user);
         return { success: true };
       }
@@ -94,6 +102,7 @@ export function AuthProvider({ children }) {
       const user = mapUser(response.data?.data?.user);
 
       if (user) {
+        window.localStorage.setItem("zentask_logged_in", "true");
         setCurrentUser(user);
         return { success: true };
       }
@@ -116,6 +125,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
+      window.localStorage.removeItem("zentask_logged_in");
       setCurrentUser(null);
     }
   };

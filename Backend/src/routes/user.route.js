@@ -6,6 +6,7 @@ import {
   logoutUser,
   currentUser,
   refreshAccessToken,
+  changeCurrentPassword,
 } from "../controller/user.controller.js";
 
 const router = Router();
@@ -20,5 +21,7 @@ router.route("/refresh-token").post(refreshAccessToken);
 router.route("/logout").post(verifyJWT, logoutUser);
 
 router.route("/current-user").get(verifyJWT, currentUser);
+
+router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
 export default router;

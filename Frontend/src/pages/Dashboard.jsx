@@ -1,32 +1,185 @@
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { StatsCard } from '../components/StatsCard';
+import { TaskCard } from '../components/TaskCard';
+import { Button } from '../components/Button';
 import { 
-  FolderKanban, 
   CheckCircle2, 
   Clock, 
   ListTodo,
   TrendingUp,
-  ArrowRight,
-  Plus
+  Plus,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 
-export default function Dashboard() {
-  const { projects, isLoading, toggleTaskStatus } = useApp();
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
+function StatsCard({ title, value, icon: Icon, iconColor, description, trend }) {
+  return (
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium flex items-center justify-between group hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300">
+      <div className="space-y-1">
+        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{title}</p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-2xl font-extrabold text-slate-800 dark:text-slate-105 font-display">{value}</p>
+          {trend && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400">
+              {trend.text}
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] text-slate-400 dark:text-slate-500">{description}</p>
+      </div>
+      <div className={`p-3 rounded-xl ${iconColor} shrink-0 transition-transform duration-300 group-hover:scale-105`}>
+        <Icon className="w-5 h-5" />
+      </div>
+    </div>
+  );
+}
 
-  if (isLoading) {
+export default function Dashboard() {
+  const { 
+    tasks, 
+    isLoading, 
+    fetchTasks, 
+    createTask, 
+    updateTask, 
+    deleteTask, 
+    toggleTaskStatus 
+  } = useApp();
+  const { currentUser } = useAuth();
+
+  //! Search, filter and pagination states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const tasksPerPage = 5;
+
+  //! Modals state
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [activeEditTask, setActiveEditTask] = useState(null);
+
+  //! Form states
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [formError, setFormError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  //! Filter and Search Tasks
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = 
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      task.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const isCompleted = task.status === "completed" || task.completed;
+    const matchesFilter = 
+      statusFilter === "all" ||
+      (statusFilter === "completed" && isCompleted) ||
+      (statusFilter === "pending" && !isCompleted);
+
+    return matchesSearch && matchesFilter;
+  });
+
+  //! Pagination calculation
+  const totalTasksCount = filteredTasks.length;
+  const totalPages = Math.ceil(totalTasksCount / tasksPerPage) || 1;
+  const indexOfLastTask = currentPage * tasksPerPage;
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+  const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
+
+  useEffect(() => {
+    fetchTasks(false);
+  }, []);
+
+  //! Reset page on search or filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
+
+  //! Adjust page if current page exceeds total pages (e.g. after task deletion)
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  //! Handle open create modal
+  const handleOpenCreate = () => {
+    setTitle("");
+    setDescription("");
+    setFormError("");
+    setIsCreateOpen(true);
+  };
+
+  //! Handle open edit modal
+  const handleOpenEdit = (task) => {
+    setActiveEditTask(task);
+    setTitle(task.title);
+    setDescription(task.description || "");
+    setFormError("");
+    setIsEditOpen(true);
+  };
+
+  //! Handle Create Task Submit
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim()) {
+      setFormError("Task title is required");
+      return;
+    }
+    setFormError("");
+    setIsSubmitting(true);
+    const result = await createTask({
+      title: title.trim(),
+      description: description.trim(),
+      status: "pending"
+    });
+    setIsSubmitting(false);
+    if (result) {
+      setIsCreateOpen(false);
+    } else {
+      setFormError("Failed to create task. Please try again.");
+    }
+  };
+
+  //! Handle Edit Task Submit
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim()) {
+      setFormError("Task title is required");
+      return;
+    }
+    setFormError("");
+    setIsSubmitting(true);
+    const result = await updateTask(activeEditTask.id, {
+      title: title.trim(),
+      description: description.trim()
+    });
+    setIsSubmitting(false);
+    if (result) {
+      setIsEditOpen(false);
+      setActiveEditTask(null);
+    } else {
+      setFormError("Failed to update task. Please try again.");
+    }
+  };
+
+  //! Statistics calculation
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.status === "completed" || t.completed).length;
+  const pendingTasks = totalTasks - completedTasks;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  if (isLoading && tasks.length === 0) {
     return (
       <div className="space-y-8">
-        {/* Welcome header skeleton */}
         <div className="space-y-2 animate-pulse">
           <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
           <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/4" />
         </div>
-
-        {/* Stats card skeleton grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, idx) => (
             <div key={idx} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium animate-pulse flex items-start gap-4">
@@ -38,125 +191,52 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-
-        {/* Dashboard contents split grid skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            {/* Chart container skeleton */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium animate-pulse h-64 flex flex-col justify-between">
-              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/4" />
-              <div className="flex gap-4 items-end h-40">
-                {Array.from({ length: 7 }).map((_, idx) => (
-                  <div key={idx} className="flex-1 bg-slate-200 dark:bg-slate-800 rounded-lg h-[60%]" style={{ height: `${[40, 65, 50, 80, 95, 30, 45][idx]}%` }} />
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Tasks list skeleton */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium animate-pulse space-y-4">
-              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/4" />
-              {Array.from({ length: 3 }).map((_, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-slate-200 dark:bg-slate-800 rounded" />
-                  <div className="flex-1 space-y-1">
-                    <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
-                    <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-1/4" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right column skeleton */}
-          <div className="space-y-6">
-            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3 animate-pulse" />
-            {Array.from({ length: 2 }).map((_, idx) => (
-              <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium animate-pulse space-y-4">
-                <div className="flex justify-between">
-                  <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
-                  <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/6" />
-                </div>
-                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-5/6" />
-                <div className="h-2 bg-slate-100 dark:bg-slate-850 rounded w-full" />
-              </div>
-            ))}
-          </div>
+        <div className="space-y-4">
+          <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded w-full" />
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <div key={idx} className="h-20 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium animate-pulse" />
+          ))}
         </div>
       </div>
     );
   }
 
-  // Calculate metrics
-  const totalProjects = projects.length;
-  
-  // Flatten all tasks
-  const allTasks = projects.reduce((acc, proj) => {
-    const tasksWithProjInfo = (proj.tasks || []).map(t => ({
-      ...t,
-      projectId: proj.id,
-      projectName: proj.title
-    }));
-    return acc.concat(tasksWithProjInfo);
-  }, []);
-
-  const totalTasks = allTasks.length;
-  const completedTasks = allTasks.filter(t => t.completed).length;
-  const pendingTasks = totalTasks - completedTasks;
-
-  // Recent Projects (last 3 created)
-  const recentProjects = [...projects]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 3);
-
-  // Recent Tasks (last 5 created/modified tasks)
-  const recentTasks = [...allTasks].slice(0, 5);
-
-  // Productivity calculation
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-  // Priority indicator styles
-  const priorityColors = {
-    High: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/50',
-    Medium: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/50',
-    Low: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/50'
-  };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12">
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight font-display">
-            Welcome back, {currentUser?.name?.split(' ')[0] || 'Shivam'}!
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-105 tracking-tight font-display">
+            Welcome back, {currentUser?.name?.split(' ')[0] || 'User'}!
           </h1>
           <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">
-            Here's what's happening with your workspace today.
+            Manage your daily tasks and review progress metrics.
           </p>
         </div>
         <button
-          onClick={() => navigate('/dashboard/projects?create=true')}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 self-start sm:self-auto"
+          onClick={handleOpenCreate}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all shadow-sm hover:shadow-md cursor-pointer focus:outline-none self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" />
-          <span>New Project</span>
+          <Plus className="w-4.5 h-4.5 stroke-[2.5]" />
+          <span>Add New Task</span>
         </button>
       </div>
 
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Total Projects"
-          value={totalProjects}
-          icon={FolderKanban}
-          iconColor="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20"
-          description="Active workspaces"
-        />
-        <StatsCard
           title="Total Tasks"
           value={totalTasks}
           icon={ListTodo}
-          iconColor="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20"
-          description="In all projects"
+          iconColor="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20"
+          description="All registered tasks"
+        />
+        <StatsCard
+          title="Pending Tasks"
+          value={pendingTasks}
+          icon={Clock}
+          iconColor="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20"
+          description="Awaiting action"
         />
         <StatsCard
           title="Completed Tasks"
@@ -164,192 +244,301 @@ export default function Dashboard() {
           icon={CheckCircle2}
           iconColor="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20"
           trend={{ type: 'increase', text: `${completionRate}% rate` }}
-          description="overall completion"
+          description="Tasks accomplished"
         />
         <StatsCard
-          title="Pending Tasks"
-          value={pendingTasks}
-          icon={Clock}
-          iconColor="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20"
-          description="Require attention"
+          title="Completion Rate"
+          value={`${completionRate}%`}
+          icon={TrendingUp}
+          iconColor="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20"
+          description="Efficiency metric"
         />
       </div>
 
-      {/* Main Grid Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Search, Filter and Tasks Board Container */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-premium p-6 space-y-6">
         
-        {/* Left 2 Columns: Productivity & Recent Tasks */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Controls Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-50 dark:border-slate-850">
           
-          {/* Productivity Overview (Simulated Chart) */}
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-display">Productivity Overview</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Weekly task completion analytics</p>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-1 rounded-lg">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>+12.4% vs last week</span>
-              </div>
-            </div>
-
-            {/* Simulated Chart Bars */}
-            <div className="grid grid-cols-7 gap-4 h-48 items-end pt-4 px-2">
-              {[
-                { day: 'Mon', value: 40, completed: 4 },
-                { day: 'Tue', value: 65, completed: 6 },
-                { day: 'Wed', value: 50, completed: 5 },
-                { day: 'Thu', value: 80, completed: 8 },
-                { day: 'Fri', value: 95, completed: 10 },
-                { day: 'Sat', value: 30, completed: 3 },
-                { day: 'Sun', value: 45, completed: 4 }
-              ].map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center gap-2 group h-full justify-end">
-                  {/* Tooltip */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-slate-800 dark:bg-slate-950 text-white text-[10px] px-2 py-1 rounded shadow-sm mb-1 pointer-events-none text-center">
-                    <p className="font-bold">{item.completed} Tasks</p>
-                    <p className="text-slate-350 dark:text-slate-400">{item.value}% Rate</p>
-                  </div>
-                  {/* Bar */}
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg h-full max-h-[80%] flex items-end overflow-hidden">
-                    <div 
-                      className="w-full bg-indigo-500 rounded-lg group-hover:bg-indigo-600 transition-all duration-500" 
-                      style={{ height: `${item.value}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">{item.day}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Tasks */}
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-display">Recent Tasks</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Quick view of tasks from your projects</p>
-              </div>
-              <button
-                onClick={() => navigate('/dashboard/projects')}
-                className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-450 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors uppercase tracking-wider"
-              >
-                All Projects <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {recentTasks.length > 0 ? (
-              <div className="divide-y divide-slate-50 dark:divide-slate-850">
-                {recentTasks.map((task) => (
-                  <div key={task.id} className="py-3.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {/* Checkbox */}
-                      <button
-                        type="button"
-                        onClick={() => toggleTaskStatus(task.projectId, task.id)}
-                        className={`flex-shrink-0 w-4.5 h-4.5 rounded border transition-colors flex items-center justify-center ${
-                          task.completed
-                            ? 'bg-indigo-600 border-indigo-600 text-white'
-                            : 'border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 text-transparent bg-white dark:bg-slate-850'
-                        }`}
-                      >
-                        {task.completed && <CheckCircle2 className="w-3.5 h-3.5" />}
-                      </button>
-
-                      <div className="min-w-0">
-                        <p 
-                          onClick={() => navigate(`/dashboard/projects/${task.projectId}`)}
-                          className={`text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-450 cursor-pointer transition-colors truncate ${
-                            task.completed ? 'text-slate-405 dark:text-slate-500 line-through' : ''
-                          }`}
-                        >
-                          {task.title}
-                        </p>
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
-                          Project: <span className="font-semibold text-slate-550 dark:text-slate-400">{task.projectName}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-full border uppercase tracking-wider ${
-                        priorityColors[task.priority] || priorityColors.Medium
-                      }`}>
-                        {task.priority}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-sm">
-                No tasks available. Create a project to start planning!
-              </div>
-            )}
-          </div>
-
-        </div>
-
-        {/* Right 1 Column: Recent Projects */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-display">Recent Projects</h3>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Your latest work activities</p>
-            </div>
+          {/* Status Filters */}
+          <div className="flex p-1 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-100 dark:border-slate-800 self-start">
             <button
-              onClick={() => navigate('/dashboard/projects')}
-              className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-455 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors uppercase tracking-wider"
+              onClick={() => setStatusFilter("all")}
+              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                statusFilter === "all"
+                  ? "bg-white dark:bg-slate-800 shadow-sm text-indigo-650 dark:text-indigo-400"
+                  : "text-slate-450 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
             >
-              See All <ArrowRight className="w-3.5 h-3.5" />
+              All
+            </button>
+            <button
+              onClick={() => setStatusFilter("pending")}
+              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                statusFilter === "pending"
+                  ? "bg-white dark:bg-slate-800 shadow-sm text-indigo-650 dark:text-indigo-400"
+                  : "text-slate-450 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setStatusFilter("completed")}
+              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                statusFilter === "completed"
+                  ? "bg-white dark:bg-slate-800 shadow-sm text-indigo-650 dark:text-indigo-400"
+                  : "text-slate-450 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
+            >
+              Completed
             </button>
           </div>
 
-          <div className="space-y-4">
-            {recentProjects.length > 0 ? (
-              recentProjects.map((proj) => (
-                <div key={proj.id} className="relative">
-                  {/* Simplified Card or Full ProjectCard */}
-                  <div 
-                    onClick={() => navigate(`/dashboard/projects/${proj.id}`)}
-                    className="p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-premium hover:shadow-premium-hover cursor-pointer transition-all duration-300 group"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 font-display group-hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate">
-                        {proj.title}
-                      </h4>
-                      <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-full">
-                        {proj.progress}%
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 line-clamp-2 leading-relaxed mb-3">
-                      {proj.description || "No description provided."}
-                    </p>
-                    <div className="w-full bg-slate-100 dark:bg-slate-850 h-1 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${
-                          proj.progress === 100 
-                            ? 'bg-emerald-500' 
-                            : proj.progress > 50 
-                            ? 'bg-indigo-500' 
-                            : 'bg-amber-500'
-                        }`} 
-                        style={{ width: `${proj.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-8 text-center text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 text-sm">
-                No projects found.
-              </div>
+          {/* Search Box */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search by title or details..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full text-xs pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 border border-slate-150 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-900 transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-655 dark:hover:text-slate-200 p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             )}
           </div>
         </div>
 
+        {/* Task Cards List */}
+        <div className="space-y-4">
+          {currentTasks.length > 0 ? (
+            currentTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onToggleTask={toggleTaskStatus}
+                onEditTask={handleOpenEdit}
+                onDeleteTask={deleteTask}
+              />
+            ))
+          ) : (
+            <div className="py-12 flex flex-col items-center justify-center text-center space-y-3 bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+              <ListTodo className="w-10 h-10 text-slate-350 dark:text-slate-600" />
+              <div>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No tasks found</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 max-w-[280px] mt-1">
+                  Try adjusting your search criteria, switching filters, or create a brand new task.
+                </p>
+              </div>
+              <button
+                onClick={handleOpenCreate}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-650 dark:text-indigo-400 text-xs font-bold rounded-lg border border-indigo-100 dark:border-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all cursor-pointer"
+              >
+                Create your first task
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination Section */}
+        {totalTasksCount > tasksPerPage && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-50 dark:border-slate-850">
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+              Showing <span className="font-bold text-slate-700 dark:text-slate-300">{indexOfFirstTask + 1}</span> to{" "}
+              <span className="font-bold text-slate-700 dark:text-slate-300">
+                {indexOfLastTask > totalTasksCount ? totalTasksCount : indexOfLastTask}
+              </span>{" "}
+              of <span className="font-bold text-slate-700 dark:text-slate-300">{totalTasksCount}</span> tasks
+            </span>
+
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className="p-1.5 bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 text-slate-500 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg shadow-sm transition-all cursor-pointer"
+              >
+                <ChevronLeft className="w-4.5 h-4.5" />
+              </button>
+              
+              {Array.from({ length: totalPages }).map((_, idx) => {
+                const pageNumber = idx + 1;
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => setCurrentPage(pageNumber)}
+                    className={`w-8.5 h-8.5 rounded-lg text-xs font-bold shadow-sm transition-all cursor-pointer ${
+                      currentPage === pageNumber
+                        ? "bg-indigo-600 text-white"
+                        : "bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 text-slate-550 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className="p-1.5 bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 text-slate-500 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg shadow-sm transition-all cursor-pointer"
+              >
+                <ChevronRight className="w-4.5 h-4.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* CREATE TASK MODAL */}
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 w-full max-w-lg shadow-2xl p-6 relative animate-fade-in space-y-4">
+            
+            <button 
+              onClick={() => setIsCreateOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <h3 className="text-lg font-bold font-display text-slate-800 dark:text-slate-100">Create New Task</h3>
+              <p className="text-xs text-slate-450 dark:text-slate-500">Plan out a new activity in your workspace</p>
+            </div>
+
+            {formError && (
+              <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 text-red-700 dark:text-red-400 text-xs font-semibold rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-505 dark:text-slate-400 uppercase tracking-wider">Task Title</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Design UI layout"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-xs px-3.5 py-2.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 border border-slate-150 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-900 transition-all text-slate-900 dark:text-slate-100"
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-505 dark:text-slate-400 uppercase tracking-wider">Task Description (Optional)</label>
+                <textarea
+                  placeholder="Provide task notes or breakdown..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows="4"
+                  className="w-full text-xs px-3.5 py-2.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 border border-slate-150 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-900 transition-all text-slate-900 dark:text-slate-100 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
+                  {isSubmitting ? "Creating..." : "Create Task"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={() => setIsCreateOpen(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT TASK MODAL */}
+      {isEditOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 w-full max-w-lg shadow-2xl p-6 relative animate-fade-in space-y-4">
+            
+            <button 
+              onClick={() => {
+                setIsEditOpen(false);
+                setActiveEditTask(null);
+              }}
+              className="absolute top-4 right-4 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <h3 className="text-lg font-bold font-display text-slate-800 dark:text-slate-100">Edit Task Details</h3>
+              <p className="text-xs text-slate-450 dark:text-slate-500">Update task records in the cloud</p>
+            </div>
+
+            {formError && (
+              <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 text-red-700 dark:text-red-400 text-xs font-semibold rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-505 dark:text-slate-400 uppercase tracking-wider">Task Title</label>
+                <input
+                  type="text"
+                  placeholder="Task title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-xs px-3.5 py-2.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 border border-slate-150 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-900 transition-all text-slate-900 dark:text-slate-100"
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-505 dark:text-slate-400 uppercase tracking-wider">Task Description (Optional)</label>
+                <textarea
+                  placeholder="Task details"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows="4"
+                  className="w-full text-xs px-3.5 py-2.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 border border-slate-150 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-900 transition-all text-slate-900 dark:text-slate-100 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
+                  {isSubmitting ? "Updating..." : "Save Changes"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={() => {
+                    setIsEditOpen(false);
+                    setActiveEditTask(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

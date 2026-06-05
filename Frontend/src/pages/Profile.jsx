@@ -7,7 +7,7 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { 
   Sparkles, 
-  FolderKanban, 
+  ListTodo, 
   CheckCircle2, 
   Award,
   RefreshCw
@@ -15,20 +15,18 @@ import {
 
 export default function Profile() {
   const { currentUser, updateProfile } = useAuth();
-  const { projects } = useApp();
+  const { tasks } = useApp();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  // Statistics calculation
-  const totalProjects = projects.length;
-  const allTasks = projects.reduce((acc, proj) => acc.concat(proj.tasks || []), []);
-  const totalTasks = allTasks.length;
-  const completedTasks = allTasks.filter(t => t.completed).length;
+  //? Statistics calculation
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.status === "completed" || t.completed).length;
   const pendingTasks = totalTasks - completedTasks;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Formik form setup
+  //? Formik form setup
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -60,7 +58,7 @@ export default function Profile() {
     
     await formik.setFieldValue('avatar', newAvatar);
     if (!isEditing) {
-      // If not in editing mode, update immediately in the backend
+      //? If not in editing mode, update immediately in the backend
       await updateProfile(formik.values.name || currentUser?.name, newAvatar);
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 3000);
@@ -162,14 +160,14 @@ export default function Profile() {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {/* Projects */}
+              {/* Total Tasks */}
               <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-100 dark:border-slate-800 flex items-start gap-3">
                 <div className="p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0">
-                  <FolderKanban className="w-4 h-4" />
+                  <ListTodo className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Projects</p>
-                  <p className="text-xl font-extrabold text-slate-800 dark:text-slate-100 font-display">{totalProjects}</p>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Tasks</p>
+                  <p className="text-xl font-extrabold text-slate-800 dark:text-slate-100 font-display">{totalTasks}</p>
                 </div>
               </div>
 

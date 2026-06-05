@@ -1,27 +1,21 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-
-// Layouts
-import { AppLayout } from '../layouts/AppLayout';
-import { AuthLayout } from '../layouts/AuthLayout';
-
-// Pages
-import Landing from '../pages/Landing';
-import Dashboard from '../pages/Dashboard';
-import Projects from '../pages/Projects';
-import ProjectDetails from '../pages/ProjectDetails';
-import Analytics from '../pages/Analytics';
-import Profile from '../pages/Profile';
-import Settings from '../pages/Settings';
-import Login from '../pages/Login';
-import Register from '../pages/Register';
+//? Imports
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { AppLayout } from "../layouts/AppLayout";
+import { AuthLayout } from "../layouts/AuthLayout";
+import Landing from "../pages/Landing";
+import Dashboard from "../pages/Dashboard";
+import Profile from "../pages/Profile";
+import Settings from "../pages/Setting";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
 
 export const router = createBrowserRouter([
-  // Public Landing Page (available to everyone)
+  //? Public landing page.
   {
     path: '/',
     element: <Landing />,
   },
-  // Auth Routes Wrapper
+  //? Auth pages share one centered layout.
   {
     element: <AuthLayout />,
     children: [
@@ -35,7 +29,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // App SaaS Dashboard Routes Wrapper (Protected)
+  //? Protected task app routes.
   {
     path: '/dashboard',
     element: <AppLayout />,
@@ -43,18 +37,6 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Dashboard />,
-      },
-      {
-        path: 'projects',
-        element: <Projects />,
-      },
-      {
-        path: 'projects/:projectId',
-        element: <ProjectDetails />,
-      },
-      {
-        path: 'analytics',
-        element: <Analytics />,
       },
       {
         path: 'profile',
@@ -66,7 +48,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // Catch all - redirect to dashboard index or login
+  //? Catch all unknown routes.
   {
     path: '*',
     element: <Navigate to="/dashboard" replace />,

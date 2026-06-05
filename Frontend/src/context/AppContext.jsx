@@ -1,398 +1,153 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { useAuth } from "./AuthContext";
+//? Imports
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "../axios/axios";
+import { useAuth } from "./AuthContext";
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const { currentUser } = useAuth();
-
-  const [projects, setProjects] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const mapSubtask = (st) => {
-    if (!st) return null;
+  const mapTask = (task) => {
+    if (!task) return null;
+
     return {
-      ...st,
-      id: st._id,
+      ...task,
+      id: task._id,
+      completed: task.status === "completed",
+      priority: task.priority || "Medium",
+      subtasks: task.subtasks || [],
     };
   };
 
-  const mapTask = (t) => {
-    if (!t) return null;
-    return {
-      ...t,
-      id: t._id,
-      subtasks: (t.subtasks || []).map(mapSubtask),
-    };
-  };
-
-  const mapProject = (p) => {
-    if (!p) return null;
-    return {
-      ...p,
-      id: p._id,
-      tasks: (p.tasks || []).map(mapTask),
-    };
-  };
-
-  const fetchProjects = async (showLoading = true) => {
+  const fetchTasks = async (showLoading = true) => {
     if (!currentUser) {
-      setProjects([]);
+      setTasks([]);
       return;
     }
-    if (showLoading) setIsLoading(true);
-    try {
-      const response = await api.get("/project");
 
-      const rawProjects = response.data?.data || [];
-      const mappedProjects = rawProjects.map(mapProject);
-      setProjects(mappedProjects);
-    } catch (error) {
-      console.error("Failed to fetch projects:", error);
-    } finally {
-      if (showLoading) setIsLoading(false);
-    }
-  };
-
-  const fetchProjectById = async (projectId, showLoading = true) => {
-    if (!currentUser || !projectId) {
-      return null;
-    }
     if (showLoading) setIsLoading(true);
+
     try {
-      const response = await api.get(`/project/${projectId}`);
-      if (response.data?.data) {
-        const mappedProject = mapProject(response.data.data);
-        setProjects((prev) => {
-          const exists = prev.some(
-            (project) => project.id === mappedProject.id,
-          );
-          if (exists) {
-            return prev.map((project) =>
-              project.id === mappedProject.id ? mappedProject : project,
-            );
-          }
-          return [mappedProject, ...prev];
-        });
-        return mappedProject;
-      }
-      return null;
+      const response = await api.get("/tasks");
+      const rawTasks = response.data?.data?.tasks || [];
+      setTasks(rawTasks.map(mapTask));
     } catch (error) {
-      console.error("Failed to fetch project:", error);
-      return null;
+      console.error("Failed to fetch tasks:", error);
     } finally {
       if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProjects(true);
+    fetchTasks(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
-  const createProject = async (title, description) => {
-    try {
-      const response = await api.post("/project", { title, description });
-      if (response.data?.data?.project) {
-        const newProj = mapProject(response.data.data.project);
-        setProjects((prev) => [newProj, ...prev]);
+  const createTask = async (taskData) => {
+    const { title, description, status } = taskData;
 
-        fetchProjects(false);
-        return newProj;
-      }
-    } catch (error) {
-      console.error("Failed to create project:", error);
-    }
-  };
-
-  const updateProject = async (projectId, title, description) => {
     try {
-      const response = await api.patch(`/project/${projectId}`, {
+      const response = await api.post("/tasks", {
         title,
         description,
+        status,
       });
-      if (response.data?.data) {
-        const updated = mapProject(response.data.data);
-        setProjects((prev) =>
-          prev.map((p) => (p.id === projectId ? { ...p, ...updated } : p)),
-        );
-        fetchProjectById(projectId, false);
-      }
-    } catch (error) {
-      console.error("Failed to update project:", error);
-    }
-  };
+      const newTask = mapTask(response.data?.data?.task);
 
-  const deleteProject = async (projectId) => {
-    try {
-      await api.delete(`/project/${projectId}`);
-      setProjects((prev) => prev.filter((p) => p.id !== projectId));
-    } catch (error) {
-      console.error("Failed to delete project:", error);
-    }
-  };
-
-  const createTask = async (projectId, taskData) => {
-    const { title, description, priority, dueDate } = taskData;
-    try {
-      const response = await api.post(`/task/project/${projectId}`, {
-        title,
-        description,
-        priority,
-        dueDate,
-      });
-      if (response.data?.data?.task) {
-        const newTask = mapTask(response.data.data.task);
-        setProjects((prev) =>
-          prev.map((proj) => {
-            if (proj.id === projectId) {
-              const updatedTasks = [...(proj.tasks || []), newTask];
-              return { ...proj, tasks: updatedTasks };
-            }
-            return proj;
-          }),
-        );
-        fetchProjectById(projectId, false);
+      if (newTask) {
+        setTasks((prev) => [newTask, ...prev]);
         return newTask;
       }
     } catch (error) {
       console.error("Failed to create task:", error);
     }
+
+    return null;
   };
 
-  const updateTask = async (projectId, taskId, taskData) => {
-    const { title, description, priority, dueDate } = taskData;
+  const updateTask = async (taskId, taskData) => {
     try {
-      const response = await api.patch(`/task/${taskId}`, {
-        title,
-        description,
-        priority,
-        dueDate,
-      });
-      if (response.data?.data?.updatedTask) {
-        const updated = mapTask(response.data.data.updatedTask);
-        setProjects((prev) =>
-          prev.map((proj) => {
-            if (proj.id === projectId) {
-              const updatedTasks = (proj.tasks || []).map((task) =>
-                task.id === taskId ? { ...task, ...updated } : task,
-              );
-              return { ...proj, tasks: updatedTasks };
-            }
-            return proj;
-          }),
+      const response = await api.patch(`/tasks/${taskId}`, taskData);
+      const updatedTask = mapTask(response.data?.data?.task);
+
+      if (updatedTask) {
+        setTasks((prev) =>
+          prev.map((task) => (task.id === taskId ? updatedTask : task)),
         );
-        fetchProjectById(projectId, false);
+        return updatedTask;
       }
     } catch (error) {
       console.error("Failed to update task:", error);
     }
+
+    return null;
   };
 
-  const deleteTask = async (projectId, taskId) => {
+  const deleteTask = async (taskId) => {
     try {
-      await api.delete(`/task/${taskId}`);
-      setProjects((prev) =>
-        prev.map((proj) => {
-          if (proj.id === projectId) {
-            const updatedTasks = (proj.tasks || []).filter(
-              (task) => task.id !== taskId,
-            );
-            return { ...proj, tasks: updatedTasks };
-          }
-          return proj;
-        }),
-      );
-      fetchProjectById(projectId, false);
+      await api.delete(`/tasks/${taskId}`);
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
+      return true;
     } catch (error) {
       console.error("Failed to delete task:", error);
+      return false;
     }
   };
 
-  const toggleTaskStatus = async (projectId, taskId) => {
+  const updateTaskStatus = async (taskId, status) => {
     try {
-      const response = await api.patch(`/task/${taskId}/toggle-status`);
-      if (response.data?.data) {
-        const updated = mapTask(response.data.data);
-        setProjects((prev) =>
-          prev.map((proj) => {
-            if (proj.id === projectId) {
-              const updatedTasks = (proj.tasks || []).map((task) => {
-                if (task.id === taskId) {
-                  // Toggle subtasks to match if we completed task
-                  const updatedSubtasks = (task.subtasks || []).map((sub) => ({
-                    ...sub,
-                    completed: updated.completed,
-                  }));
-                  return {
-                    ...task,
-                    completed: updated.completed,
-                    subtasks: updatedSubtasks,
-                  };
-                }
-                return task;
-              });
-              return { ...proj, tasks: updatedTasks };
-            }
-            return proj;
-          }),
+      const response = await api.patch(`/tasks/${taskId}/status`, { status });
+      const updatedTask = mapTask(response.data?.data?.task);
+
+      if (updatedTask) {
+        setTasks((prev) =>
+          prev.map((task) => (task.id === taskId ? updatedTask : task)),
         );
-        fetchProjectById(projectId, false);
+        return updatedTask;
       }
     } catch (error) {
-      console.error("Failed to toggle task status:", error);
+      console.error("Failed to update task status:", error);
     }
+
+    return null;
   };
 
-  const createSubTask = async (projectId, taskId, title) => {
-    try {
-      const response = await api.post(`/subTask/task/${taskId}`, { title });
-      if (response.data?.data?.subTask) {
-        const newSubTask = mapSubtask(response.data.data.subTask);
-        setProjects((prev) =>
-          prev.map((proj) => {
-            if (proj.id === projectId) {
-              const updatedTasks = (proj.tasks || []).map((task) => {
-                if (task.id === taskId) {
-                  const updatedSub = [...(task.subtasks || []), newSubTask];
-                  return {
-                    ...task,
-                    completed: false,
-                    subtasks: updatedSub,
-                  };
-                }
-                return task;
-              });
-              return { ...proj, tasks: updatedTasks };
-            }
-            return proj;
-          }),
-        );
-        fetchProjectById(projectId, false);
-        return newSubTask;
-      }
-    } catch (error) {
-      console.error("Failed to create subtask:", error);
-    }
+  const toggleTaskStatus = async (taskId) => {
+    const task = tasks.find((item) => item.id === taskId);
+    const nextStatus = task?.status === "completed" ? "pending" : "completed";
+    return updateTaskStatus(taskId, nextStatus);
   };
 
-  const updateSubTask = async (projectId, taskId, subTaskId, title) => {
-    try {
-      const response = await api.patch(`/subTask/${subTaskId}`, { title });
-      if (response.data?.data?.updatedSubTask) {
-        const updated = mapSubtask(response.data.data.updatedSubTask);
-        setProjects((prev) =>
-          prev.map((proj) => {
-            if (proj.id === projectId) {
-              const updatedTasks = (proj.tasks || []).map((task) => {
-                if (task.id === taskId) {
-                  const updatedSub = (task.subtasks || []).map((sub) =>
-                    sub.id === subTaskId ? { ...sub, ...updated } : sub,
-                  );
-                  return { ...task, subtasks: updatedSub };
-                }
-                return task;
-              });
-              return { ...proj, tasks: updatedTasks };
-            }
-            return proj;
-          }),
-        );
-        fetchProjectById(projectId, false);
-      }
-    } catch (error) {
-      console.error("Failed to update subtask:", error);
-    }
-  };
+  const taskStats = useMemo(() => {
+    const completedTasks = tasks.filter((task) => task.status === "completed");
+    const pendingTasks = tasks.filter((task) => task.status === "pending");
 
-  const deleteSubTask = async (projectId, taskId, subTaskId) => {
-    try {
-      await api.delete(`/subTask/${subTaskId}`);
-      setProjects((prev) =>
-        prev.map((proj) => {
-          if (proj.id === projectId) {
-            const updatedTasks = (proj.tasks || []).map((task) => {
-              if (task.id === taskId) {
-                const updatedSub = (task.subtasks || []).filter(
-                  (sub) => sub.id !== subTaskId,
-                );
-                const allCompleted =
-                  updatedSub.length > 0 && updatedSub.every((s) => s.completed);
-                return {
-                  ...task,
-                  completed: allCompleted,
-                  subtasks: updatedSub,
-                };
-              }
-              return task;
-            });
-            return { ...proj, tasks: updatedTasks };
-          }
-          return proj;
-        }),
-      );
-      fetchProjectById(projectId, false);
-    } catch (error) {
-      console.error("Failed to delete subtask:", error);
-    }
-  };
-
-  const toggleSubTaskStatus = async (projectId, taskId, subTaskId) => {
-    try {
-      const response = await api.patch(`/subTask/${subTaskId}/toggle-status`);
-      if (response.data?.data) {
-        const updated = mapSubtask(response.data.data);
-        setProjects((prev) =>
-          prev.map((proj) => {
-            if (proj.id === projectId) {
-              const updatedTasks = (proj.tasks || []).map((task) => {
-                if (task.id === taskId) {
-                  const updatedSub = (task.subtasks || []).map((sub) =>
-                    sub.id === subTaskId
-                      ? { ...sub, completed: updated.completed }
-                      : sub,
-                  );
-                  const allCompleted =
-                    updatedSub.length > 0 &&
-                    updatedSub.every((s) => s.completed);
-                  return {
-                    ...task,
-                    completed: allCompleted,
-                    subtasks: updatedSub,
-                  };
-                }
-                return task;
-              });
-              return { ...proj, tasks: updatedTasks };
-            }
-            return proj;
-          }),
-        );
-        fetchProjectById(projectId, false);
-      }
-    } catch (error) {
-      console.error("Failed to toggle subtask status:", error);
-    }
-  };
+    return {
+      totalTasks: tasks.length,
+      completedTasks: completedTasks.length,
+      pendingTasks: pendingTasks.length,
+      completionRate:
+        tasks.length > 0
+          ? Math.round((completedTasks.length / tasks.length) * 100)
+          : 0,
+    };
+  }, [tasks]);
 
   return (
     <AppContext.Provider
       value={{
-        projects,
+        tasks,
         isLoading,
-        fetchProjects,
-        fetchProjectById,
-        createProject,
-        updateProject,
-        deleteProject,
+        taskStats,
+        fetchTasks,
         createTask,
         updateTask,
         deleteTask,
+        updateTaskStatus,
         toggleTaskStatus,
-        createSubTask,
-        updateSubTask,
-        deleteSubTask,
-        toggleSubTaskStatus,
       }}
     >
       {children}
@@ -400,10 +155,13 @@ export function AppProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useApp() {
   const context = useContext(AppContext);
+
   if (!context) {
     throw new Error("useApp must be used within an AppProvider");
   }
+
   return context;
 }

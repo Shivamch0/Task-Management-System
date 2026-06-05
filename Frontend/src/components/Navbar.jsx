@@ -9,12 +9,9 @@ export function Navbar({ onMenuOpen }) {
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === "/dashboard") return "Dashboard";
-    if (path.startsWith("/dashboard/projects/")) return "Project Details";
-    if (path === "/dashboard/projects") return "Projects";
-    if (path === "/dashboard/analytics") return "Analytics";
     if (path === "/dashboard/profile") return "Profile";
     if (path === "/dashboard/settings") return "Settings";
-    return "TaskFlow";
+    return "ZenTask";
   };
 
   const formattedDate = new Date().toLocaleDateString("en-US", {

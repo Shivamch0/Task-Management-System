@@ -1,18 +1,16 @@
-import { useState } from "react";
-import { Outlet, Navigate } from "react-router-dom";
+//? Imports
+import { Layers } from "lucide-react";
+import { Link, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Sidebar } from "../components/Sidebar";
-import { Navbar } from "../components/Navbar";
 
-export function AppLayout() {
+export function AuthLayout() {
   const { currentUser, isAuthenticating } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (isAuthenticating) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
         <svg
-          className="animate-spin h-10 w-10 text-indigo-600"
+          className="h-10 w-10 animate-spin text-indigo-600"
           fill="none"
           viewBox="0 0 24 24"
         >
@@ -34,22 +32,25 @@ export function AppLayout() {
     );
   }
 
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
+  if (currentUser) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
-    <div className="flex h-screen bg-slate-50/50 dark:bg-slate-950 overflow-hidden">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar onMenuOpen={() => setIsSidebarOpen(true)} />
-
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-            <Outlet />
+    <div className="min-h-screen bg-slate-50/50 px-4 py-8 text-slate-805 dark:bg-slate-950 dark:text-slate-100">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center">
+        <Link to="/" className="mb-8 flex items-center justify-center gap-2.5">
+          <div className="rounded-lg bg-indigo-600 p-2 text-white">
+            <Layers className="h-5 w-5" />
           </div>
-        </main>
+          <span className="font-display text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+            ZenTask
+          </span>
+        </Link>
+
+        <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-premium dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

@@ -91,12 +91,7 @@ export default function Login() {
         </Button>
       </form>
 
-      {/* Mock login tip */}
-      <div className="p-3 bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 text-xs">
-        <p className="font-bold text-slate-600 dark:text-slate-300 mb-1">💡 Demo Credentials:</p>
-        <p>Email: <span className="font-mono font-semibold text-slate-700 dark:text-slate-200 select-all">test@example.com</span></p>
-        <p>Password: <span className="font-mono font-semibold text-slate-700 dark:text-slate-200 select-all">password123</span></p>
-      </div>
+      
     </div>
   );
 }

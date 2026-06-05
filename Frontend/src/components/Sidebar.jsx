@@ -22,8 +22,6 @@ export function Sidebar({ isOpen, onClose }) {
 
   const navItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Projects", path: "/dashboard/projects", icon: FolderKanban },
-    { name: "Analytics", path: "/dashboard/analytics", icon: BarChart3 },
     { name: "Profile", path: "/dashboard/profile", icon: UserCircle },
     { name: "Settings", path: "/dashboard/settings", icon: SettingsIcon },
   ];
@@ -53,7 +51,7 @@ export function Sidebar({ isOpen, onClose }) {
                 <Layers className="w-5 h-5" />
               </div>
               <span className="font-display font-bold text-xl tracking-tight text-slate-800 dark:text-slate-100">
-                TaskFlow
+                ZenTask
               </span>
             </NavLink>
             <button

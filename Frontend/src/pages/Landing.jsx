@@ -24,20 +24,20 @@ export default function Landing() {
 
   const faqs = [
     {
-      q: "Is TaskFlow really free?",
-      a: "Yes! TaskFlow is free to use for personal project and task management. Create an account, sign in, and manage your workspace through the connected backend.",
+      q: "Is ZenTask really free?",
+      a: "Yes! ZenTask is free to use for personal project and task management. Create an account, sign in, and manage your workspace through the connected backend.",
     },
     {
       q: "Where is my project data stored?",
-      a: "Your project data is stored in MongoDB through the TaskFlow API. Authentication uses secure HTTP-only cookies for session handling.",
+      a: "Your project data is stored in MongoDB through the ZenTask API. Authentication uses secure HTTP-only cookies for session handling.",
     },
     {
-      q: "Does TaskFlow include a backend server?",
+      q: "Does ZenTask include a backend server?",
       a: "Yes. The app includes an Express and Mongoose API for users, projects, tasks, and subtasks, with Axios used on the frontend.",
     },
     {
       q: "Does it support mobile devices?",
-      a: "Yes, TaskFlow is designed to be fully responsive, scaling smoothly from large desktop displays to mobile phones and tablets.",
+      a: "Yes, ZenTask is designed to be fully responsive, scaling smoothly from large desktop displays to mobile phones and tablets.",
     },
   ];
 
@@ -53,7 +53,7 @@ export default function Landing() {
               <Layers className="w-5 h-5" />
             </div>
             <span className="font-display font-bold text-xl tracking-tight text-slate-800 dark:text-slate-100">
-              TaskFlow
+              ZenTask
             </span>
           </Link>
 
@@ -122,9 +122,7 @@ export default function Landing() {
           </h1>
 
           <p className="text-slate-505 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed font-medium">
-            Plan, organize, and track your projects, tasks, and collapsible
-            subtasks effortlessly. A clean workspace designed to elevate your
-            daily productivity.
+            Plan, organize, and track your tasks effortlessly. A clean, premium workspace designed to elevate your daily productivity.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -171,7 +169,7 @@ export default function Landing() {
               <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-xs space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
-                    TaskFlow app
+                    ZenTask app
                   </span>
                   <span className="text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-full">
                     66%
@@ -243,12 +241,10 @@ export default function Landing() {
               <FolderKanban className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display">
-              Workspaces & Projects
+              Fast Task Planning
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Create clean workspaces for separate initiatives, keep items
-              grouped by domain, and track overarching completion progress
-              instantly.
+              Create tasks quickly, write clear details, and keep your workspace clean and structured.
             </p>
           </div>
 
@@ -257,12 +253,10 @@ export default function Landing() {
               <ListTodo className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display">
-              Granular Subtasks
+              Interactive Task List
             </h3>
             <p className="text-sm text-slate-505 dark:text-slate-400 leading-relaxed">
-              Break tasks down into executable micro-items. Toggle and edit
-              subtasks inline with collapsible folders, updating progress states
-              automatically.
+              Manage tasks with interactive actions, toggle completed status instantly, edit titles, and delete items securely.
             </p>
           </div>
 
@@ -271,12 +265,10 @@ export default function Landing() {
               <BarChart3 className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display">
-              Performance Analytics
+              Dashboard Analytics
             </h3>
             <p className="text-sm text-slate-505 dark:text-slate-400 leading-relaxed">
-              Visualize completion velocities, daily progress metrics, weekly
-              charts, and priority distributions with lightweight native SVG
-              graphics.
+              Visualize completion rates, pending items counts, and overall progress metrics directly on your dashboard.
             </p>
           </div>
         </div>
@@ -293,7 +285,7 @@ export default function Landing() {
                 Protected Workspace Data
               </h3>
               <p className="text-sm text-slate-505 dark:text-slate-400 leading-relaxed">
-                TaskFlow keeps your workspace behind authenticated API routes
+                ZenTask keeps your workspace behind authenticated API routes
                 and HTTP-only session cookies, with project data persisted
                 through MongoDB.
               </p>
@@ -415,7 +407,7 @@ export default function Landing() {
             Frequently Asked Questions
           </h2>
           <p className="text-sm text-slate-400 dark:text-slate-550 font-semibold max-w-sm mx-auto">
-            Quick responses to common questions about TaskFlow.
+            Quick responses to common questions about ZenTask.
           </p>
         </div>
 
@@ -453,7 +445,7 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <Layers className="w-4.5 h-4.5 text-indigo-500" />
             <span>
-              TaskFlow &copy; {new Date().getFullYear()} Shivam Choudhary. All
+              ZenTask &copy; {new Date().getFullYear()} Shivam Choudhary. All
               rights reserved.
             </span>
           </div>

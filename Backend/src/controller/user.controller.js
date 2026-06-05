@@ -1,7 +1,7 @@
 import { User } from "../model/user.model.js";
 import jwt from "jsonwebtoken";
 
-//! Utils Imports
+//? Utils Imports
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -165,4 +165,29 @@ const refreshAccessToken = asyncHandler(async (req , res) => {
     }
 });
 
-export { registerUser, loginUser , logoutUser , currentUser , refreshAccessToken };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(400, "Old password and new password are required");
+    }
+
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Incorrect current password");
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: true });
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Password updated successfully")
+    );
+});
+
+export { registerUser, loginUser , logoutUser , currentUser , refreshAccessToken, changeCurrentPassword };
